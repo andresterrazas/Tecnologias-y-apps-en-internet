@@ -22,3 +22,11 @@ def inicio():
 def obtener_tareas():
     return tareas
 
+# Obtener una tarea por ID
+@app.get('/tareas/{tarea_id}', tags=['Tareas'])
+def obtener_tarea(tarea_id: int):
+    for tarea in tareas:
+        if tarea['id'] == tarea_id:
+            return tarea
+    raise HTTPException(status_code=404, detail='Tarea no encontrada')
+
