@@ -1,4 +1,4 @@
-#!/Users/andresterrazas/Documents/GitHub/tecnologias-y-apss-en-internet/FASTAPI/entornofastAPI/bin/python3.13
+#!/Users/andresterrazas/Documents/GitHub/Tecnologias-y-apps-en-internet/FASTAPI/entornofastAPI/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
