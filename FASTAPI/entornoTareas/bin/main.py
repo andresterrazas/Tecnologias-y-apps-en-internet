@@ -35,3 +35,19 @@ def obtener_tarea(tarea_id: int):
 def crear_tarea(tarea: dict):
     tareas.append(tarea)
     return tarea
+
+# Actualizar una tarea existente
+@app.put('/tareas/{tarea_id}', tags=['Tareas'])
+def actualizar_tarea(tarea_id: int, titulo: Optional[str] = None, descripcion: Optional[str] = None, vencimiento: Optional[str] = None, estado: Optional[str] = None):
+    for tarea in tareas:
+        if tarea['id'] == tarea_id:
+            if titulo is not None:
+                tarea['titulo'] = titulo
+            if descripcion is not None:
+                tarea['descripcion'] = descripcion
+            if vencimiento is not None:
+                tarea['vencimiento'] = vencimiento
+            if estado is not None:
+                tarea['estado'] = estado
+            return tarea
+    raise HTTPException(status_code=404, detail='Tarea no encontrada')
