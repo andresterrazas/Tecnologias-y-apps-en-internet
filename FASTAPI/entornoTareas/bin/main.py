@@ -30,3 +30,8 @@ def obtener_tarea(tarea_id: int):
             return tarea
     raise HTTPException(status_code=404, detail='Tarea no encontrada')
 
+# Crear una nueva tarea
+@app.post('/tareas', tags=['Tareas'])
+def crear_tarea(tarea: dict):
+    tareas.append(tarea)
+    return tarea
