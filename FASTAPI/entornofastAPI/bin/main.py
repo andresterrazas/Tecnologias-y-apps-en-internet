@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Optional, List
 from modelsPydantic import modelUsuario, modelAuth
 from tokenGen import createToken
@@ -16,30 +17,38 @@ app= FastAPI(
 #Levanta las tablas definidas en modelos
 Base.metadata.create_all(bind=engine)
 
-Usuarios=[
-    {"id":1, "nombre":"Anettita", "edad":20, "correo":"anettita@example.com"},
-    {"id":2, "nombre":"Isaac", "edad":22, "correo":"isaac@example.com"},
-    {"id":3, "nombre":"Emilito", "edad":20, "correo":"emilito@example.com"},
-    {"id":4, "nombre":"Brayan", "edad":20, "correo":"brayan@example.com"},
-]
-
+#Endpoint de inicio
 @app.get('/',tags=['Inicio'])
 def main():
     return {'hola fastAPI':'Andrés Terrazas'}
-
-#endpoint para autenticación con JWT
-@app.post('/auth',tags=['Autenticación'])
-def login(autorizado:modelAuth):
-    if autorizado.correo == 'andres@example.com' and autorizado.passw == '12345678':
-        token:str = createToken(autorizado.model_dump())
-        return JSONResponse(content=token)   
-    else:
-        return {"Aviso":"Usuario no autorizado"}
+    
+#dependencies=[Depends(BearerJWT())]    
     
 #Endpoint consultar todos
-@app.get('/usuarios', dependencies=[Depends(BearerJWT())] ,response_model= List[modelUsuario], tags=['Operaciones CRUD'])
+@app.get('/usuarios/',tags=['Operaciones CRUD'])
 def ConsultarTodos():
-    return Usuarios
+    db= Session()
+    try:
+        consulta= db.query(User).all()
+        return JSONResponse(content=jsonable_encoder(consulta))
+    except Exception as e:
+        raise HTTPException(status_code=500, content={"mensaje":"Error al consultar usuarios", "error":str(e)})
+    finally:
+        db.close()
+        
+#Endpoint consultar por id
+@app.get('/usuarios/{id}',tags=['Operaciones CRUD'])
+def ConsultarUno(id:int):
+    db= Session()
+    try:
+        consulta= db.query(User).filter(User.id==id).first()
+        if not consulta:
+            return JSONResponse(status_code=404, content={"mensaje":"Usuario no encontrado"})
+        return JSONResponse(content=jsonable_encoder(consulta))
+    except Exception as e:
+        raise HTTPException(status_code=500, content={"mensaje":"Error al consultar el usuario", "error":str(e)})
+    finally:
+        db.close()
 
 #Endpoint para agregar usuarios
 @app.post('/usuario/',response_model= modelUsuario,tags=['Operaciones CRUD'])
@@ -57,21 +66,23 @@ def AgregarUsuario(usuarionuevo: modelUsuario):
     finally:
         db.close()
 
-#endpoint para actualizar usuario
+""" #endpoint para actualizar usuario
 @app.put('/usuarios/{id}',response_model=modelUsuario, tags=['Operaciones CRUD'])
 # lo que hace dict es que recibe un diccionario y lo pone como lista
 def ActualizarUsuario(id: int, usuariosNuevos:modelUsuario):
-    for index, usr in enumerate (Usuarios):
-        if usr['id'] == id:
-            Usuarios[index]= usuariosNuevos.model_dump()
-            return Usuarios[index]
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
     
 #endpoint para eliminar usuario
 @app.delete('/usuarios/{id}',tags=["Operaciones CRUD"])
 def EliminarUsuario(id:int):
-    for i in range(len(Usuarios)):
-        if Usuarios[i]["id"]==id:
-            Usuarios.pop(i)
-            return {"mensaje":"usuario eliminado"}
-    raise HTTPException(status_code=404,detail="usuario no encontrado")
+     """
+     
+     
+#endpoint para autenticación con JWT
+@app.post('/auth',tags=['Autenticación'])
+def login(autorizado:modelAuth):
+    if autorizado.correo == 'andres@example.com' and autorizado.passw == '12345678':
+        token:str = createToken(autorizado.model_dump())
+        return JSONResponse(content=token)   
+    else:
+        return {"Aviso":"Usuario no autorizado"}
