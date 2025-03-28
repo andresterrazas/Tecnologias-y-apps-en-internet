@@ -66,17 +66,44 @@ def AgregarUsuario(usuarionuevo: modelUsuario):
     finally:
         db.close()
 
-""" #endpoint para actualizar usuario
-@app.put('/usuarios/{id}',response_model=modelUsuario, tags=['Operaciones CRUD'])
-# lo que hace dict es que recibe un diccionario y lo pone como lista
-def ActualizarUsuario(id: int, usuariosNuevos:modelUsuario):
-    
-    
-#endpoint para eliminar usuario
-@app.delete('/usuarios/{id}',tags=["Operaciones CRUD"])
-def EliminarUsuario(id:int):
-     """
-     
+# Endpoint para actualizar usuario
+@app.put('/usuarios/{id}', tags=['Operaciones CRUD'])
+def ActualizarUsuario(id: int, usuariosNuevos: modelUsuario):
+    db = Session()
+    try:
+        usuario_existente = db.query(User).filter(User.id == id).first()
+        if not usuario_existente:
+            return JSONResponse(status_code=404, content={"mensaje": "Usuario no encontrado"})
+        
+        # Actualizar los campos del usuario existente
+        for key, value in usuariosNuevos.model_dump().items():
+            setattr(usuario_existente, key, value)
+        
+        db.commit()
+        return JSONResponse(content={"mensaje": "Usuario actualizado", "usuario": usuariosNuevos.model_dump()})
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, content={"mensaje": "Error al actualizar usuario", "error": str(e)})
+    finally:
+        db.close()
+
+# Endpoint para eliminar usuario
+@app.delete('/usuarios/{id}', tags=["Operaciones CRUD"])
+def EliminarUsuario(id: int):
+    db = Session()
+    try:
+        usuario_existente = db.query(User).filter(User.id == id).first()
+        if not usuario_existente:
+            return JSONResponse(status_code=404, content={"mensaje": "Usuario no encontrado"})
+        
+        db.delete(usuario_existente)
+        db.commit()
+        return JSONResponse(content={"mensaje": "Usuario eliminado"})
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, content={"mensaje": "Error al eliminar usuario", "error": str(e)})
+    finally:
+        db.close()
      
 #endpoint para autenticación con JWT
 @app.post('/auth',tags=['Autenticación'])
