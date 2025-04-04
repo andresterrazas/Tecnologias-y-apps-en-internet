@@ -1,3 +1,5 @@
+import sys
+print(sys.path)
 from fastapi import FastAPI, HTTPException
 from DB.conexion import engine, Base
 from routers.usuarios import routerUsuario
